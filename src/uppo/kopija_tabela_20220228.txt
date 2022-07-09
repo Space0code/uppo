@@ -1,0 +1,212 @@
+package uppo;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.*;
+
+public class Tabela extends JTable {
+	private JTable t;
+	private String [][] vsebina;
+	private String [] glava;
+	private String f;
+	private int stk;	// stevilo kategorij
+	private int ID;
+	private int st_stolpcev;
+	
+	
+ 	public Tabela(String vrsta, int st_kategorij, String [] naslovi, String font) {
+		f = font;
+		stk = st_kategorij;
+		switch (vrsta) {
+		case "vnosna": 
+			ustvariVnosna(naslovi);
+		}
+	}
+	
+	public void ustvariTabelo(String [][] vsebina, String [] glava) {
+		// kreiraj tabelo
+		t = new JTable(vsebina, glava);
+		t.setModel(new DefaultTableModel(vsebina, glava));
+		
+		nastaviPrivzeteVrednosi();
+		ponastavi();
+		dodajKeyListener();
+	}
+	
+	private void ustvariVnosna(String [] naslovi) {
+		// inicializiraj vsebino vsebine
+		// zapiši eno prazno vrstico v tabelo
+		st_stolpcev = stk + 1;	// toliko kot je kategorij + 1 za ID-stevilko
+		vsebina = new String [1][st_stolpcev];
+		vsebina[0][0] = "1";
+		for (int i = 1; i < st_stolpcev; i++)
+			vsebina[0][i] = "";
+		
+		// inicializiraj vsebino glave - prepiši vsebino tabele naslovi[]
+		int j = 0;
+		glava = new String[st_stolpcev];
+		glava[j++] = "ID";	// prvi stolpec
+		for (int i = 0; i < naslovi.length; i++) {
+			System.out.print(naslovi[i] + "; ");
+			if (naslovi[i] != null) {
+				glava[j++] = naslovi[i];
+			}
+		}
+			
+		// ustvari tabelo
+		ustvariTabelo(vsebina, glava);
+	}
+	
+	
+    private void nastaviPrivzeteVrednosi() {
+    	t.setRowHeight(30);
+    	t.setRowMargin(5);
+    	t.setFont(new Font(f, Font.PLAIN, 14));
+    	t.getTableHeader().setReorderingAllowed(false);	// onemogoèi, da bi uporabnik premikal stolpce tabele
+    	t.changeSelection(0, 0, false, false);
+    	// tekst v celicah naj bo na sredini
+    	DefaultTableCellRenderer r = new DefaultTableCellRenderer();
+    	r.setHorizontalAlignment( JLabel.CENTER );
+    	r.invalidate();
+    	t.getColumnModel().getColumn(0).setCellRenderer( r );
+    	
+    }
+    
+	
+	@Override
+	public boolean isCellEditable(int row, int column) {
+		if (column == 0)
+			return false;
+		return super.isCellEditable(row, column);
+	}
+	
+	public JFrame pozicioniraj(JFrame o, Zaslon z) {
+    	GridBagConstraints c = new GridBagConstraints();
+    	c.gridwidth = 3;
+    	c.gridheight = 1;
+    	c.gridx = 1;
+    	c.gridy = 0;
+    	c.weightx= 0.1;
+    	c.weighty = 1.0;
+    	c.ipadx = 400;
+    	c.ipady = 400;
+    	c.fill = GridBagConstraints.BOTH;
+    	
+    	JScrollPane scrollpane = new JScrollPane(t);
+    	scrollpane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), "".toUpperCase(), TitledBorder.CENTER, TitledBorder.TOP, new Font(f, Font.PLAIN, 14), Color.darkGray));
+    	z.dodaj(scrollpane, c);
+    	
+    	o.add(z);
+    	return o;
+    }
+    
+	public void dodajCB(String [] opcije, int s) {
+		// dodaj tabeli comboBox
+    	// npr.: za doloèanje ali vsebuje podatek številsko ali besedno vrednost
+    	TableColumn stolpec = t.getColumnModel().getColumn(s);
+    	JComboBox comboBox = new JComboBox();
+    	for (int i = 0; i < opcije.length; i++)
+    		comboBox.addItem(opcije[i]);
+    	stolpec.setCellEditor(new DefaultCellEditor(comboBox));    		
+	}
+	
+	public void ponastavi() {
+		ID = 1;
+	}
+	
+	public JFrame pokazi(JFrame o, Zaslon z) {
+		t.setVisible(true);
+		z.pokazi();
+		o.setVisible(true);
+		return o;
+	}
+	
+	public void skrij(JFrame o, Zaslon z) {
+		t.setVisible(false);
+		z.pokazi();
+		o.setVisible(true);
+	}
+	
+	public void dodajVrstico() {
+		
+		boolean na_koncu_vrstice = ( t.getSelectedColumn() == (st_stolpcev-1) );
+		
+		if (na_koncu_vrstice) {
+			DefaultTableModel model = (DefaultTableModel) t.getModel();
+			model.addRow(new String[stk]);
+			t.setValueAt(Integer.toString(++ID), ID-1, 0);
+		}
+	}
+	
+    public void tabuliraj() {// ! ne dela v redu
+
+		int vrsta;
+		int stolpec;
+		
+    	//t.changeSelection(t.getRowCount()-1, 0, false, false);
+		t.setCellSelectionEnabled(true);
+		
+		/*if (t.getSelectedColumn() == 0) 
+			t.changeSelection(t.getSelectedRow(), 1, false, false);
+		else
+			t.changeSelection(t.getSelectedRow()+1, 0, false, false);
+		*/
+		//t.changeSelection(t.getSelectedRow(), t.getSelectedColumn(), false, false);
+		t.editCellAt(t.getSelectedRow(), t.getSelectedColumn());
+			
+		System.out.println(";" + t.getSelectedRow() + ";" + t.getSelectedColumn() + ";");
+		t.setSelectionBackground(Color.cyan);    			
+		
+    }
+    
+    private void dodajKeyListener() {
+    	t.addKeyListener(new KeyListener() {
+    		@Override
+    		public void keyTyped(KeyEvent e) {}
+    		
+    		@Override
+    		public void keyReleased(KeyEvent e) {}
+    		
+    		@Override
+    		public void keyPressed(KeyEvent e) {
+    			boolean enter_stisnjen = (e.getKeyCode() == 10); // getKeyCode() == 10 ==> pritisnjen enter
+    			if (enter_stisnjen) {
+    				dodajVrstico();
+    				tabuliraj();    
+    				}
+			}
+    	});
+    }
+
+    public String [][] preberi() {
+    	String izhod[][];
+    	izhod = new String [ID][st_stolpcev];
+    	
+    	for (int i = 0; i < ID; i++) {
+    		for (int j = 0; j < st_stolpcev; j++) {
+    			izhod[i][j] = (String) t.getValueAt(i, j);
+    		}    		
+    	}
+    	
+    	return izhod;
+    }
+    
+    public String izpisiVsebino() {
+    	String s = "";
+    	
+    	for (int i = 0; i < ID; i++) {
+    		for (int j = 0; j < st_stolpcev; j++) {
+    			s += (String) t.getValueAt(i, j) + "; ";
+    		}    		
+    		s += "\n";
+    	}
+    	
+    	return s;
+    }
+    
+}
