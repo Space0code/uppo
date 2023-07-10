@@ -3,7 +3,7 @@ Univerzalni program za podporo odločanju (UPPO) je splošnonamenska aplikacija 
 
 Izvorno kodo najdete v src/uppo_003.java.
 
-Podobno kot DEXi, z dvema večjima razlikama: 
+Aplikacija je podobna DEXi, z dvema večjima razlikama: 
 - UPPO omogoča tudi poljubne kvantitativne (številske) vnose, DEXi jih ne
 - DEXi je bolj dodelan
 
